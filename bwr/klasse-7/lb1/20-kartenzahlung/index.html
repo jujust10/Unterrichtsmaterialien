@@ -9,10 +9,8 @@
 <main id="screen"></main>
 <script>
 const cards=[
- {issuer:'Sparkasse',type:'Debit',scheme:'girocard',color:'red'},
- {issuer:'Volksbank Raiffeisenbank',type:'Debit',scheme:'girocard · Visa Debit',color:'orange'},
- {issuer:'Sparkasse',type:'Credit',scheme:'Mastercard',color:'silver'},
- {issuer:'Volksbank Raiffeisenbank',type:'Credit',scheme:'Visa',color:'gold'}
+ {issuer:'Sparkasse',type:'Debit',scheme:'girocard · Visa Debit',color:'red'},
+ {issuer:'Volksbank Raiffeisenbank · GoldCard',type:'Credit',scheme:'Mastercard',color:'gold'}
 ];
 const screen=document.querySelector('#screen');
 let selected, digits='',stage='',mode='';
@@ -23,7 +21,7 @@ function render(next){
  stage=next;
  const credit=selected?.type==='Credit';
  if(next==='choose'){
-  screen.innerHTML='<h1>Axel zahlt 18,00 €</h1><p>Die Kasse akzeptiert girocard, Visa und Mastercard. Wähle eine der vier Musterkarten.</p><div class="cards">'+cards.map((c,i)=>'<button class="card '+c.color+'" data-act="c'+i+'"><b>'+c.issuer+'</b><small>AXEL SCHWEISS · MUSTER</small><i>'+c.type+' · '+c.scheme+'</i></button>').join('')+'</div>';
+  screen.innerHTML='<h1>Axel zahlt 18,00 €</h1><p>Die Kasse akzeptiert girocard, Visa und Mastercard. Wähle eine der beiden Musterkarten.</p><div class="cards">'+cards.map((c,i)=>'<button class="card '+c.color+'" data-act="c'+i+'"><b>'+c.issuer+'</b><small>AXEL SCHWEISS · MUSTER</small><i>'+c.type+' · '+c.scheme+'</i></button>').join('')+'</div>';
   return;
  }
  const title='<h1>'+selected.issuer+' · '+selected.type+'</h1>';
@@ -44,7 +42,7 @@ function render(next){
 screen.addEventListener('click',event=>{
  const el=event.target.closest('[data-act]');if(!el)return;
  const a=el.dataset.act;
- if(/^c[0-3]$/.test(a)){selected=cards[Number(a[1])];render('amount');}
+ if(/^c[01]$/.test(a)){selected=cards[Number(a[1])];render('amount');}
  else if(a==='tap'){digits='';render('pin');}
  else if(a==='wrong'){message('Vergleiche die Anzeige mit dem Eintrittspreis: Beide zeigen 18,00 €.');}
  else if(a.startsWith('key')&&digits.length<4){digits+=a.at(-1);}
