@@ -9,7 +9,7 @@
 <main id="screen"></main>
 <script>
 const cards=[
- {issuer:'Sparkasse',type:'Debit',scheme:'girocard · Visa Debit',color:'red'},
+ {issuer:'Sparkasse',type:'Debit',scheme:'girocard · Debit Mastercard',color:'red'},
  {issuer:'Volksbank Raiffeisenbank · GoldCard',type:'Credit',scheme:'Mastercard',color:'gold'}
 ];
 const screen=document.querySelector('#screen');
@@ -21,7 +21,7 @@ function render(next){
  stage=next;
  const credit=selected?.type==='Credit';
  if(next==='choose'){
-  screen.innerHTML='<h1>Axel zahlt 18,00 €</h1><p>Die Kasse akzeptiert girocard, Visa und Mastercard. Wähle eine der beiden Musterkarten.</p><div class="cards">'+cards.map((c,i)=>'<button class="card '+c.color+'" data-act="c'+i+'"><b>'+c.issuer+'</b><small>AXEL SCHWEISS · MUSTER</small><i>'+c.type+' · '+c.scheme+'</i></button>').join('')+'</div>';
+  screen.innerHTML='<h1>Axel zahlt 18,00 €</h1><p>Die Kasse akzeptiert girocard und Mastercard. Wähle eine der beiden Musterkarten.</p><div class="cards">'+cards.map((c,i)=>'<button class="card '+c.color+'" data-act="c'+i+'"><b>'+c.issuer+'</b><small>AXEL SCHWEISS · MUSTER</small><i>'+c.type+' · '+c.scheme+'</i></button>').join('')+'</div>';
   return;
  }
  const title='<h1>'+selected.issuer+' · '+selected.type+'</h1>';
