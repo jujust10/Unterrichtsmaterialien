@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="de"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>KartArena · Buchung</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f0f4f4;color:#18282d;font:17px system-ui,sans-serif}header{background:#162b30;color:#fff;padding:24px max(5vw,20px);display:flex;gap:18px;align-items:center;flex-wrap:wrap}.mark{display:grid;place-items:center;background:#d8f263;color:#17282d;width:42px;height:42px;font-weight:900;font-size:24px;border-radius:12px}.brand{font-size:25px;font-weight:850;letter-spacing:.02em}.badge{margin-left:auto;border:1px solid #a2b5b5;padding:6px 12px;border-radius:30px;font-size:.83rem}main{max-width:1040px;margin:30px auto;padding:0 15px}.layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(230px,1fr);gap:20px}.panel,aside{background:white;border-radius:17px;border:1px solid #d6e0df;padding:clamp(16px,4vw,32px)}aside{align-self:start}.stage{font-size:.85rem;color:#35585c;font-weight:700}h1{font-size:clamp(1.7rem,5vw,2.5rem);line-height:1.08;margin:12px 0 21px}h2{font-size:1.1rem}p{line-height:1.48}button,a.download{font:inherit;font-weight:700;border:0;border-radius:10px;cursor:pointer;padding:13px 16px;margin:6px 6px 5px 0}.primary,a.download{background:#d8f263;color:#17282d;text-decoration:none;display:inline-block}.secondary{background:#e8efee;color:#17282d}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #16777a;outline-offset:3px}label{display:block;padding:.35em 0;font-weight:650}input[type=text],input[type=email]{width:100%;padding:10px;border-radius:7px;border:1px solid #a4b7ba;background:#f7fafa;color:#18282d;font:inherit}.method{border:1px solid #c6d5d4;border-radius:10px;padding:12px;margin:8px 0;display:flex;gap:10px;align-items:start}.method input{accent-color:#236267;margin-top:5px}.review{color:#52686a}.review input{cursor:default}.details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;background:#eef5f3;padding:14px;border-radius:10px}.details dt{font-weight:700;font-size:.85rem}.details dd{margin:3px 0 0;overflow-wrap:anywhere}.amount{display:flex;justify-content:space-between;gap:8px}.total{border-top:1px solid #c6d5d4;padding-top:12px;font-size:1.18rem;font-weight:850}.notice{border-left:4px solid #7b9822;background:#f4f8de;padding:10px 14px;margin:12px 0}.error{color:#9c261a;font-weight:700}.success{color:#195b3a}footer{max-width:1040px;margin:22px auto;padding:0 15px;color:#425f61;font-size:.9rem}@media(max-width:680px){.layout{grid-template-columns:1fr}.badge{margin-left:0}}
+</style>
+<header><span class="mark" aria-hidden="true">K</span><span class="brand">KartArena</span><span class="badge">Unterrichtssimulation</span></header>
+<main class="layout"><section class="panel" id="view" aria-labelledby="title"></section><aside><h2>Deine Buchung</h2><p class="amount"><span>2 Kartfahrten</span><span>2 × 27,00 €</span></p><p class="amount total"><span>Gesamtbetrag</span><span>54,00 €</span></p><p>Digitales Ticket für Lea Fuchs</p></aside></main>
+<footer>Alle Daten sind fiktiv. Es werden weder Zahlungen ausgelöst noch E-Mails versendet.</footer>
+<script>
+const view=document.querySelector('#view');
+const methods={
+ paypal:{name:'PayPal – Bezahlung nach 30 Tagen',payee:'PayPal',date:'30 Tage nach der Buchung',action:'PayPal bucht den Gesamtbetrag automatisch von der gewählten Zahlungsquelle ab.',button:'Zahlungsaufschub bestätigen'},
+ klarna:{name:'Klarna – in bis zu 30 Tagen bezahlen',payee:'Klarna',date:'In diesem Beispiel spätestens nach 30 Tagen',action:'Öffne die Bestellung in der Klarna-Übersicht und bezahle dort bis zum angezeigten Datum.',button:'Zahlungsaufschub bestätigen'},
+ invoice:{name:'Kauf auf Rechnung',payee:'KartArena',date:'14 Tage nach Erhalt der Rechnung',action:'Überweise den Betrag selbst. Nutze die Kontodaten und den Verwendungszweck auf der Rechnung.',button:'Auf Rechnung buchen'}
+};
+let selected='';
+function show(stage,title,body){
+ view.innerHTML='<div class="stage">'+stage+'</div><h1 id="title" tabindex="-1">'+title+'</h1>'+body;
+ if(stage!=='1 · Warenkorb')view.querySelector('h1').focus();
+}
+function cart(){
+ selected='';
+ show('1 · Warenkorb','Dein Warenkorb','<p>Zwei Fahrten auf der Indoor-Kartbahn. Das digitale Ticket erhältst du direkt nach der Buchung.</p><button class="primary" id="checkout">Zur Kasse</button>');
+ view.querySelector('#checkout').onclick=checkout;
+}
+function checkout(){
+ const options=Object.entries(methods).map(([key,item])=>'<label class="method"><input type="radio" name="payment" value="'+key+'" '+(key===selected?'checked':'')+'>'+item.name+'</label>').join('');
+ show('2 · Kasse','Zur Kasse','<label for="name">Name auf dem Ticket</label><input id="name" type="text" value="Lea Fuchs" readonly><label for="mail">Empfängeradresse für das PDF-Ticket</label><input id="mail" type="email" value="lea.fuchs@example.com" readonly><h2>Zahlungsart auswählen</h2><label class="method review"><input type="radio" disabled>SEPA-Lastschrift</label><label class="method review"><input type="radio" disabled>Kreditkarte (Visa/Mastercard)</label>'+options+'<p id="message" role="status"></p><button class="primary" id="continue">Weiter</button><button class="secondary" id="back">Zum Warenkorb</button>');
+ view.querySelector('#back').onclick=cart;
+ view.querySelector('#continue').onclick=()=>{
+  const radio=view.querySelector('input:checked');
+  if(!radio){const m=view.querySelector('#message');m.className='error';m.textContent='Wähle einen Zahlungsweg mit späterer Fälligkeit.';return;}
+  selected=radio.value;review();
+ };
+}
+function details(item){
+ return '<dl class="details"><div><dt>Empfänger</dt><dd>'+item.payee+'</dd></div><div><dt>Fälligkeit</dt><dd>'+item.date+'</dd></div><div><dt>Offener Betrag</dt><dd>54,00 €</dd></div><div><dt>Heute zu zahlen</dt><dd>0,00 €</dd></div></dl><p>'+item.action+'</p>';
+}
+function review(){
+ const item=methods[selected];
+ const notice=selected==='invoice'?'Die Rechnung erhältst du in dieser Übung direkt von der Kartbahn.':'Im Modell hat der Zahlungsdienst die spätere Zahlung freigegeben.';
+ show('3 · Prüfen und buchen',item.name,details(item)+'<p class="notice">'+notice+'</p><button class="primary" id="book">'+item.button+'</button><button class="secondary" id="back">Zahlungsart ändern</button>');
+ view.querySelector('#back').onclick=checkout;
+ view.querySelector('#book').onclick=confirmation;
+}
+function confirmation(){
+ const item=methods[selected];
+ const extra=selected==='invoice'?'<p>Rechnung KR-207 · Verwendungszweck: KR-207 Lea Fuchs. Die Rechnung in der Übung enthält keine echte IBAN.</p>':'<p>Vorgang KA-207 · Die nächsten Schritte findest du in diesem Zahlungsbeleg.</p>';
+ show('4 · Zahlungsbeleg','Gebucht. Zahlung steht noch aus.',details(item)+extra+'<a id="ticket" class="download" download="KartArena-Ticket-KA207.pdf">Ticket als PDF</a><button id="mail" class="secondary">E-Mail ansehen</button><button id="reset" class="secondary">Neue Buchung</button><section id="receipt" aria-live="polite"></section>');
+ view.querySelector('#ticket').href=ticketPdf;
+ view.querySelector('#reset').onclick=cart;
+ view.querySelector('#mail').onclick=()=>{
+  view.querySelector('#receipt').innerHTML='<div class="notice"><strong>Ticket-E-Mail · Vorschau</strong><p>An lea.fuchs@example.com<br>Betreff · Deine KartArena-Buchung KA-207</p><p>Hallo Lea, im Anhang findest du deine zwei Kartfahrten zum Ausdrucken.</p><a class="download" href="'+ticketPdf+'" download="KartArena-Ticket-KA207.pdf">PDF-Anhang öffnen</a></div>';
+ };
+}
+function makeTicket(){
+ const body='BT /F1 25 Tf 56 735 Td (KartArena) Tj /F1 15 Tf 0 -39 Td (Ticket KA-207 - Unterrichtssimulation) Tj 0 -62 Td (Lea Fuchs) Tj 0 -26 Td (2 Indoor-Kartfahrten) Tj 0 -26 Td (Buchungsbetrag: 54,00 EUR) Tj 0 -45 Td (Musterbeleg - kein Eintrittsnachweis) Tj ET';
+ const objects=['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Count 1 /Kids [3 0 R] >>','<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>','<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>','<< /Length '+body.length+' >>\nstream\n'+body+'\nendstream'];
+ let pdf='%PDF-1.4\n';const offsets=[0];
+ objects.forEach((object,i)=>{offsets.push(pdf.length);pdf+=(i+1)+' 0 obj\n'+object+'\nendobj\n';});
+ const start=pdf.length;
+ pdf+='xref\n0 '+offsets.length+'\n0000000000 65535 f \n'+offsets.slice(1).map(n=>String(n).padStart(10,'0')+' 00000 n \n').join('')+'trailer\n<< /Root 1 0 R /Size 6 >>\nstartxref\n'+start+'\n%%EOF\n';
+ return URL.createObjectURL(new Blob([pdf],{type:'application/pdf'}));
+}
+const ticketPdf=makeTicket();cart();
+</script></html>
