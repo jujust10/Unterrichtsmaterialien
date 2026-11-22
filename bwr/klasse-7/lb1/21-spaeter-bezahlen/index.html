@@ -9,7 +9,7 @@
 <script>
 const view=document.querySelector('#view');
 const methods={
- paypal:{name:'PayPal – Bezahlung nach 30 Tagen',payee:'PayPal',date:'30 Tage nach der Buchung',action:'PayPal bucht den Gesamtbetrag automatisch von der gewählten Zahlungsquelle ab.',button:'Zahlungsaufschub bestätigen'},
+ paypal:{name:'PayPal – Bezahlung nach 30 Tagen',payee:'PayPal',date:'30 Tage nach der Buchung',action:'PayPal bucht den Gesamtbetrag automatisch von der gewählten Zahlungsquelle ab. Für die regulären 30 Tage kommen keine Gebühren hinzu.',button:'Zahlungsaufschub bestätigen'},
  klarna:{name:'Klarna – in bis zu 30 Tagen bezahlen',payee:'Klarna',date:'In diesem Beispiel spätestens nach 30 Tagen',action:'Öffne die Bestellung in der Klarna-Übersicht und bezahle dort bis zum angezeigten Datum.',button:'Zahlungsaufschub bestätigen'},
  invoice:{name:'Kauf auf Rechnung',payee:'KartArena',date:'14 Tage nach Erhalt der Rechnung',action:'Überweise den Betrag selbst. Nutze die Kontodaten und den Verwendungszweck auf der Rechnung.',button:'Auf Rechnung buchen'}
 };
@@ -62,5 +62,17 @@ function makeTicket(){
  pdf+='xref\n0 '+offsets.length+'\n0000000000 65535 f \n'+offsets.slice(1).map(n=>String(n).padStart(10,'0')+' 00000 n \n').join('')+'trailer\n<< /Root 1 0 R /Size 6 >>\nstartxref\n'+start+'\n%%EOF\n';
  return URL.createObjectURL(new Blob([pdf],{type:'application/pdf'}));
 }
-const ticketPdf=makeTicket();cart();
+function modelBank(){
+ const aside=document.querySelector('aside');
+ aside.innerHTML='<h2>Offene Zahlung</h2><p class="amount"><span>PayPal · Tag 30</span><strong>54,00 €</strong></p><p>KartArena · KA-207</p>';
+ show('KlarKonto · Modellkonto','Kontostand 40,00 €','<p>Heute ist die PayPal-Zahlung für die bereits gebuchten Kartfahrten fällig.</p><button class="primary" id="debit">Abbuchung im Modell prüfen</button><button class="secondary" id="delay">Verlängerung ansehen</button><section id="result" aria-live="polite"></section><p><a href="./">Zurück zum Kartshop</a></p>');
+ const result=view.querySelector('#result');
+ view.querySelector('#debit').onclick=()=>{result.innerHTML='<p class="notice"><strong>Abbuchung im Modell nicht möglich.</strong> Auf dem Konto fehlen 14,00 €.</p>';};
+ view.querySelector('#delay').onclick=()=>{
+  result.innerHTML='<div class="notice"><strong>Modellangebot vor dem Abbuchungstermin</strong><p>Neuer Termin: Tag 60. Gebühr: 3,00 €. Neuer Gesamtbetrag: 57,00 €.</p></div><button class="secondary" id="income">20 € Geldeingang berücksichtigen</button><p id="projection"></p>';
+  view.querySelector('#income').onclick=()=>{view.querySelector('#projection').textContent='Bei einem sicheren Eingang von 20,00 € stehen am 60. Tag 60,00 € zur Verfügung. Nach der Abbuchung bleiben 3,00 €.';};
+ };
+}
+const ticketPdf=makeTicket();
+if(location.hash==='#konto')modelBank();else cart();
 </script></html>
