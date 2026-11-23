@@ -1,7 +1,28 @@
 <!doctype html>
-<html lang="de"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>KartArena · Buchung</title>
+<html lang="de"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>KartArena · Buchung</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f0f4f4;color:#18282d;font:17px system-ui,sans-serif}header{background:#162b30;color:#fff;padding:24px max(5vw,20px);display:flex;gap:18px;align-items:center;flex-wrap:wrap}.mark{display:grid;place-items:center;background:#d8f263;color:#17282d;width:42px;height:42px;font-weight:900;font-size:24px;border-radius:12px}.brand{font-size:25px;font-weight:850;letter-spacing:.02em}.badge{margin-left:auto;border:1px solid #a2b5b5;padding:6px 12px;border-radius:30px;font-size:.83rem}main{max-width:1040px;margin:30px auto;padding:0 15px}.layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(230px,1fr);gap:20px}.panel,aside{background:white;border-radius:17px;border:1px solid #d6e0df;padding:clamp(16px,4vw,32px)}aside{align-self:start}.stage{font-size:.85rem;color:#35585c;font-weight:700}h1{font-size:clamp(1.7rem,5vw,2.5rem);line-height:1.08;margin:12px 0 21px}h2{font-size:1.1rem}p{line-height:1.48}button,a.download{font:inherit;font-weight:700;border:0;border-radius:10px;cursor:pointer;padding:13px 16px;margin:6px 6px 5px 0}.primary,a.download{background:#d8f263;color:#17282d;text-decoration:none;display:inline-block}.secondary{background:#e8efee;color:#17282d}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #16777a;outline-offset:3px}label{display:block;padding:.35em 0;font-weight:650}input[type=text],input[type=email]{width:100%;padding:10px;border-radius:7px;border:1px solid #a4b7ba;background:#f7fafa;color:#18282d;font:inherit}.method{border:1px solid #c6d5d4;border-radius:10px;padding:12px;margin:8px 0;display:flex;gap:10px;align-items:start}.method input{accent-color:#236267;margin-top:5px}.review{color:#52686a}.review input{cursor:default}.details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;background:#eef5f3;padding:14px;border-radius:10px}.details dt{font-weight:700;font-size:.85rem}.details dd{margin:3px 0 0;overflow-wrap:anywhere}.amount{display:flex;justify-content:space-between;gap:8px}.total{border-top:1px solid #c6d5d4;padding-top:12px;font-size:1.18rem;font-weight:850}.notice{border-left:4px solid #7b9822;background:#f4f8de;padding:10px 14px;margin:12px 0}.error{color:#9c261a;font-weight:700}.success{color:#195b3a}footer{max-width:1040px;margin:22px auto;padding:0 15px;color:#425f61;font-size:.9rem}@media(max-width:680px){.layout{grid-template-columns:1fr}.badge{margin-left:0}}
+
+body[data-provider="paypal"]{--accent:#173d80;--accent-text:#fff;--soft:#eaf2ff;--tint:#f4f8ff;--edge:#bfd3ef}
+body[data-provider="klarna"]{--accent:#381c35;--accent-text:#fff;--soft:#ffdfeb;--tint:#fff6fa;--edge:#e7b9cd}
+body[data-provider]{background:var(--tint)}
+body[data-provider] header{background:var(--accent);color:var(--accent-text)}
+body[data-provider] .mark{background:var(--soft);color:var(--accent)}
+body[data-provider] .panel,body[data-provider] aside{border-color:var(--edge)}
+body[data-provider] .stage{color:var(--accent)}
+body[data-provider] .primary{background:var(--accent);color:var(--accent-text)}
+body[data-provider] button,body[data-provider] .pay-option{min-height:44px}
+body[data-provider] .secondary,body[data-provider] .details{background:var(--soft);color:var(--accent)}
+body[data-provider] .notice{background:var(--soft);border-color:var(--accent)}
+body[data-provider="klarna"] #view{max-width:100%;border-top:7px solid #d97daa}
+.provider-tag{display:inline-block;margin:0 0 3px;padding:5px 10px;background:var(--soft);color:var(--accent);font-size:.84rem;font-weight:750;border-radius:8px}
+.demo-login{max-width:32rem;margin:20px 0}
+.demo-login input[readonly]{height:48px;background:#fff;border-color:var(--edge)}
+.pay-option{display:flex;gap:12px;align-items:center;padding:16px;margin:18px 0 8px;border:2px solid var(--edge);border-radius:12px;font-weight:600}
+.pay-option:has(input:checked){background:var(--soft);border-color:var(--accent)}
+.pay-option input{accent-color:var(--accent);width:22px;height:22px;flex:0 0 auto}
+.pay-option strong,.pay-option small{display:block}
+@media(max-width:440px){body[data-provider] header{gap:10px}body[data-provider] main{margin:15px auto}.demo-login{margin:12px 0}}
 </style>
 <header><span class="mark" aria-hidden="true">K</span><span class="brand">KartArena</span><span class="badge">Unterrichtssimulation</span></header>
 <main class="layout"><section class="panel" id="view" aria-labelledby="title"></section><aside><h2>Deine Buchung</h2><p class="amount"><span>2 Kartfahrten</span><span>2 × 27,00 €</span></p><p class="amount total"><span>Gesamtbetrag</span><span>54,00 €</span></p><p>Digitales Ticket für Lea Fuchs</p></aside></main>
@@ -27,15 +48,79 @@ function cart(){
  view.querySelector('#checkout').onclick=checkout;
 }
 function checkout(){
+ leaveProvider();
  const options=Object.entries(methods).map(([key,item])=>'<label class="method"><input type="radio" name="payment" value="'+key+'" '+(key===selected?'checked':'')+'>'+item.name+'</label>').join('');
  show('2 · Kasse','Zur Kasse','<label for="name">Name auf dem Ticket</label><input id="name" type="text" value="Lea Fuchs" readonly><p class="stage">Die Buchung wird im Modell von einer erwachsenen Person bestätigt.</p><label for="mail">Empfängeradresse für das PDF-Ticket</label><input id="mail" type="email" value="lea.fuchs@example.com" readonly><h2>Zahlungsart auswählen</h2><label class="method review"><input type="radio" disabled>SEPA-Lastschrift</label><label class="method review"><input type="radio" disabled>Kreditkarte (Visa/Mastercard)</label>'+options+'<p class="stage">PayPal und Klarna ab 18. Für einen direkten Kauf auf Rechnung brauchen Minderjährige grundsätzlich die Zustimmung der Eltern. Der Händler kann ein Mindestalter festlegen.</p><p id="message" role="status"></p><button class="primary" id="continue">Weiter</button><button class="secondary" id="back">Zum Warenkorb</button>');
  view.querySelector('#back').onclick=cart;
  view.querySelector('#continue').onclick=()=>{
   const radio=view.querySelector('input:checked');
   if(!radio){const m=view.querySelector('#message');m.className='error';m.textContent='Wähle einen Zahlungsweg mit späterer Fälligkeit.';return;}
-  selected=radio.value;review();
+  selected=radio.value;
+  if (selected==='invoice') review();
+  else providerLogin();
  };
 }
+
+const providerViews = {
+ paypal: {label:'PayPal', badge:'Web-Checkout', icon:'P'},
+ klarna: {label:'Klarna', badge:'App-Ansicht', icon:'K'}
+};
+const shopHeader = document.querySelector('header').innerHTML;
+
+function leaveProvider(){
+ if (!document.body.dataset.provider) return;
+ delete document.body.dataset.provider;
+ document.querySelector('header').innerHTML=shopHeader;
+ document.title='KartArena · Buchung';
+}
+
+function providerButton(id, action){
+ view.querySelector('#'+id).addEventListener('click',action);
+}
+
+function providerScreen(stage,title,body){
+ const provider=providerViews[selected];
+ show(stage,title,'<p class="provider-tag">'+provider.badge+' · Unterrichtssimulation</p>'+body);
+}
+
+function providerLogin(){
+ const provider=providerViews[selected];
+ document.body.dataset.provider=selected;
+ document.title=provider.label+' · Zahlungsübung';
+ document.querySelector('header').innerHTML='<span class="mark" aria-hidden="true">'+provider.icon+'</span><span class="brand">'+provider.label+'</span><span class="badge">Unterrichtssimulation</span>';
+ const fields='<div class="demo-login"><label for="demo-email">E-Mail des Modellkontos</label><input id="demo-email" type="text" value="modellkonto@kartarena.example" readonly autocomplete="off"><label for="demo-secret">Muster-PIN</label><input id="demo-secret" type="text" value="••••••" readonly autocomplete="off"></div>';
+ providerScreen('Anmeldung',provider.label+' öffnen','<p>Die KartArena hat dich zur Zahlungsübung weitergeleitet. Das Modellkonto einer erwachsenen Person ist vorbereitet.</p>'+fields+'<button class="primary" id="provider-login">Anmelden</button><button class="secondary" id="provider-back">Zurück zur Kasse</button>');
+ providerButton('provider-login',selected==='paypal'?payPalChoice:klarnaReview);
+ providerButton('provider-back',checkout);
+}
+
+function payPalChoice(){
+ providerScreen('PayPal · Zahlungsart','Zahlungsart auswählen','<p>KartArena · Gesamtbetrag <strong>54,00 €</strong></p><label class="pay-option"><input id="pay-later" type="radio" name="paypal-method"><span><strong>Bezahlung nach 30 Tagen</strong><small>Heute 0,00 € · in 30 Tagen 54,00 €</small></span></label><p id="provider-message" role="status"></p><button class="primary" id="provider-check">Weiter zur Bonitätsprüfung</button><button class="secondary" id="provider-back">Zurück zur Kasse</button>');
+ providerButton('provider-check',()=>{
+  if (!view.querySelector('#pay-later').checked){
+   const message=view.querySelector('#provider-message');
+   message.className='error';
+   message.textContent='Wähle zuerst „Bezahlung nach 30 Tagen“ aus.';
+   view.querySelector('#pay-later').focus();
+   return;
+  }
+  payPalApproved();
+ });
+ providerButton('provider-back',checkout);
+}
+
+function payPalApproved(){
+ providerScreen('PayPal · Prüfung und Bestätigung','Bonitätsprüfung abgeschlossen','<p class="notice" role="status"><strong>Im Modell freigegeben.</strong> PayPal prüft bei der Bonitätsprüfung die Kreditwürdigkeit. Jetzt kannst du die Buchung bestätigen.</p>'+details(methods.paypal)+'<button class="primary" id="provider-confirm">Kauf bestätigen</button><button class="secondary" id="provider-back">Zurück zur Zahlungsart</button>');
+ providerButton('provider-confirm',confirmation);
+ providerButton('provider-back',payPalChoice);
+}
+
+function klarnaReview(){
+ providerScreen('Klarna · Bestellung prüfen','Zahlung bestätigen','<p>KartArena · Zwei Kartfahrten</p>'+details(methods.klarna)+'<button class="primary" id="provider-confirm">Zahlung bestätigen</button><button class="secondary" id="provider-back">Zurück zur Kasse</button>');
+ providerButton('provider-confirm',confirmation);
+ providerButton('provider-back',checkout);
+}
+
 function details(item){
  return '<dl class="details"><div><dt>Empfänger</dt><dd>'+item.payee+'</dd></div><div><dt>Fälligkeit</dt><dd>'+item.date+'</dd></div><div><dt>Offener Betrag</dt><dd>54,00 €</dd></div><div><dt>Heute zu zahlen</dt><dd>0,00 €</dd></div></dl><p>'+item.action+'</p>';
 }
@@ -47,6 +132,7 @@ function review(){
  view.querySelector('#book').onclick=confirmation;
 }
 function confirmation(){
+ leaveProvider();
  const item=methods[selected];
  const extra=selected==='invoice'?'<p>Rechnung KR-207 · Verwendungszweck: KR-207 Lea Fuchs. Die Rechnung enthält Muster-Zahlungsdaten.</p>':'<p>Vorgang KA-207 · Die nächsten Schritte findest du in diesem Zahlungsbeleg.</p>';
  show('4 · Zahlungsbeleg','Gebucht. Zahlung steht noch aus.',details(item)+extra+'<a id="paymentPdf" class="download" target="_blank" rel="noopener">'+(selected==='invoice'?'Musterrechnung als PDF öffnen':'Zahlungsbeleg als PDF öffnen')+'</a><a id="ticket" class="download" download="KartArena-Ticketbogen-KA207.pdf">Ticketbogen herunterladen</a><button id="mail" class="secondary">E-Mail ansehen</button><button id="reset" class="secondary">Neue Buchung</button><section id="receipt" aria-live="polite"></section>');
