@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Gaming-Daten prüfen</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#eff5f1;color:#132c28;font:17px/1.5 system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:clamp(16px,4vw,42px)}h1{font-size:clamp(30px,5vw,52px);line-height:1.08;margin:0 0 12px}h2{margin:0 0 12px;font-size:1.18rem}p{margin:.65em 0}.grid{display:grid;grid-template-columns:1.25fr 1fr;gap:15px;margin:20px 0}.card{background:white;border:1px solid #c9ded4;border-radius:18px;padding:clamp(16px,3vw,24px)}ol{padding-left:1.35em}li{margin:15px 0}.row{display:grid;grid-template-columns:minmax(0,1fr) 67px;gap:6px;align-items:center;margin:10px 0}.row strong{text-align:right}.bar{height:9px;background:#d8e9e1;border-radius:8px;grid-column:1/-1}.bar span{display:block;height:100%;border-radius:inherit;background:#276651}small{display:block;color:#405c56}button,input{min-height:46px;font:inherit;border-radius:9px}button{background:#1c5947;color:#fff;border:0;padding:8px 15px;font-weight:700;cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #20699c;outline-offset:2px}input{width:min(100%,125px);padding:8px;border:1px solid #5c7c71}.check{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:7px}.feedback{font-weight:650;font-size:.93rem;margin-top:6px}.right{color:#00623f}.wrong{color:#a12722}a{color:#125460}@media(max-width:700px){.grid{grid-template-columns:1fr}}
+</style></head><body><main>
+<h1>Gaming-Daten prüfen</h1><p>Werte die Grafik aus und rechne im Heft. Prüfe dann hier deine Ergebnisse.</p>
+<div class="grid">
+<section class="card" aria-label="Grafik A"><h2>A · Umsätze mit Mobile Games</h2><p>Deutschland · 2025 · Millionen Euro</p>
+<div class="row"><span>In-App-Käufe</span><strong>2.600</strong><div class="bar" aria-hidden="true"><span style="width:100%"></span></div></div>
+<div class="row"><span>Gaming-Abos</span><strong>56</strong><div class="bar" aria-hidden="true"><span style="width:2.15%"></span></div></div>
+<div class="row"><span>Kauf von Spiele-Apps</span><strong>19</strong><div class="bar" aria-hidden="true"><span style="width:.73%"></span></div></div>
+<small>Eigene Darstellung nach <a href="https://www.game.de/deutscher-markt-fuer-mobile-games-steigender-umsatz-und-eine-vielfaeltige-community/" target="_blank" rel="noopener">game</a> · Datenbasis: YouGov Shopper und Sensor Tower · Beträge gerundet</small></section>
+<section class="card" aria-label="Grafik B"><h2>B · Wie oft spielen Jugendliche?</h2><p>Deutschland · 2026 · 1.200 Befragte von 12 bis 19 Jahren</p>
+<div class="row"><span>Täglich oder mehrmals pro Woche</span><strong>70 %</strong><div class="bar" aria-hidden="true"><span style="width:70%"></span></div></div>
+<div class="row"><span>Einmal pro Woche bis einmal in 14 Tagen</span><strong>15 %</strong><div class="bar" aria-hidden="true"><span style="width:15%"></span></div></div>
+<div class="row"><span>Einmal im Monat oder seltener</span><strong>9 %</strong><div class="bar" aria-hidden="true"><span style="width:9%"></span></div></div>
+<div class="row"><span>Nie</span><strong>6 %</strong><div class="bar" aria-hidden="true"><span style="width:6%"></span></div></div>
+<small>Eigene Darstellung nach <a href="https://mpfs.de/app/uploads/2026/11/JIM-2026_PDF_barrierearm.pdf#page=52" target="_blank" rel="noopener">mpfs · JIM 2026, S. 50</a> · Prozentwerte gerundet</small></section></div>
+<section class="card"><h2>Ergebnisse prüfen</h2><ol>
+<li data-answer="2675" data-unit="Mio. €" data-hint="Addiere die drei Balkenwerte. Ihre Summe entspricht 100 %.">Berechne den Gesamtumsatz der drei Kategorien in Mio. €.</li>
+<li data-answer="97.2" data-unit="%" data-hint="Teile 2.600 durch den Gesamtumsatz und multipliziere mit 100. Runde auf eine Nachkommastelle.">Berechne den Anteil der In-App-Käufe in Prozent. Runde auf eine Nachkommastelle.</li>
+<li data-answer="72" data-unit="Jugendliche" data-hint="Der Grundwert ist 1.200. Berechne 6 % davon.">Berechne mit Grafik B, wie vielen der 1.200 Befragten die 6 % „nie“ ungefähr entsprechen.</li>
+<li data-answer="2.1" data-unit="%" data-hint="Teile 56 durch 2.675 und multipliziere mit 100.">Zusatz: Berechne den Anteil der Gaming-Abos. Runde auf eine Nachkommastelle.</li>
+</ol></section></main><script>
+document.querySelectorAll('li[data-answer]').forEach((item,i)=>{
+ const box=document.createElement('div');box.className='check';
+ const input=document.createElement('input');input.setAttribute('aria-label','Ergebnis zu Aufgabe '+(i+1));input.inputMode='decimal';input.autocomplete='off';
+ const unit=document.createElement('span');unit.textContent=item.dataset.unit;
+ const button=document.createElement('button');button.type='button';button.textContent='Prüfen';
+ const feedback=document.createElement('div');feedback.className='feedback';feedback.setAttribute('role','status');
+ box.append(input,unit,button);item.append(box,feedback);
+ function check(){
+  const raw=input.value.trim().replace(/\s/g,'');
+  const value=/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(raw)?raw.replace(/\./g,'').replace(',','.'):raw.replace(',','.');
+  const ok=raw!==''&&/^[0-9]+(?:\.[0-9]+)?$/.test(value)&&Math.abs(Number(value)-Number(item.dataset.answer))<0.0001;
+  feedback.className='feedback '+(ok?'right':'wrong');
+  feedback.textContent=ok?'Richtig. Vergleiche deinen Rechenweg mit deinem Ansatz im Heft.':raw?'Tipp: '+item.dataset.hint:'Trage zuerst dein Ergebnis ein.';
+ }
+ button.onclick=check;input.addEventListener('keydown',e=>{if(e.key==='Enter')check();});
+});
+</script></body></html>
