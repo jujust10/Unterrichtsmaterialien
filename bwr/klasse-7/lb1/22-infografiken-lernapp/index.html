@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#172b35">
+<title>Infografiken auswerten</title>
+<style>
+:root{font-family:system-ui,-apple-system,sans-serif;color:#142931;background:#f3f6f4;line-height:1.48;--ink:#142931;--green:#1a5b4c;--light:#e8f2eb;--line:#cad9d2}
+*{box-sizing:border-box}body{margin:0}main{max-width:1250px;margin:auto;padding:clamp(12px,3vw,37px)}
+header{background:#172b35;color:white;padding:19px 28px;border-radius:18px;display:flex;align-items:center;justify-content:space-between;gap:20px}h1{margin:0;font-size:clamp(1.42rem,4vw,2.4rem);line-height:1.15}header p{margin:4px 0 0;color:#d4e7df}header span{white-space:nowrap;font-weight:700}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}button,input,select{font:inherit}button{cursor:pointer;border:1px solid var(--line);background:white;color:var(--ink);border-radius:10px;padding:8px 13px;min-height:44px;font-weight:680}button[aria-current=true],button.primary{background:var(--green);color:white;border-color:var(--green)}button:disabled{cursor:default}button[hidden], [hidden]{display:none!important}button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #8059aa;outline-offset:2px}
+.layout{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);gap:15px;align-items:start}.card{background:white;border:1px solid var(--line);padding:clamp(13px,2vw,22px);border-radius:16px;min-width:0}
+#chart{position:sticky;top:12px;max-height:calc(100dvh - 24px);overflow:auto}h2{margin:0 0 8px;font-size:1.35rem;line-height:1.2}.chart-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.chart-heading img{width:clamp(65px,10vw,98px);height:auto;border-radius:7px}.subtitle,.source,.counter,.unit{color:#415956}.subtitle{margin:3px 0 9px}.source{display:block;margin-top:13px;font-size:.79rem}.facts{display:flex;gap:8px;margin:10px 0}.facts strong{flex:1;background:var(--light);border-radius:8px;padding:6px 9px}.bars{display:grid;gap:6px}.bar-row{display:grid;grid-template-columns:minmax(100px,1.04fr) minmax(66px,1fr) minmax(42px,max-content);align-items:center;gap:7px;font-size:.87rem;min-height:20px;line-height:1.2}.bar-track{height:9px;background:#e4ece7;border-radius:5px}.bar-track span{display:block;width:var(--width);height:100%;background:#357966;border-radius:5px}.bar-row strong{text-align:right}.chart-axis{display:flex;justify-content:space-between;padding-top:3px;font-size:.72rem;color:#415956}.axis-bar{display:grid;grid-template-columns:minmax(100px,1.04fr) minmax(66px,1fr) minmax(42px,max-content);gap:7px}.axis-bar>div{grid-column:2}
+svg.plot{width:100%;height:auto;display:block}.grid{stroke:#d8e4de}.plot text{fill:#314f58;font:11px system-ui,sans-serif}.plot .value{font-weight:800;fill:#164f68}.plot .curve{fill:none;stroke:#185d79;stroke-width:3}.plot circle{fill:#185d79}
+.counter{margin:0 0 8px;font-size:.87rem;font-weight:650}#prompt{margin:0 0 15px;font-size:1.15rem;font-weight:700}.dependency{padding:9px 12px;background:#eff3ff;border-left:4px solid #5269a7;border-radius:6px;margin:0 0 14px}.dependency p{margin:3px 0}fieldset{border:0;margin:0;padding:0}.field{display:block;margin-bottom:12px}.field>span{display:block;font-weight:620}.field input,.field select{background:white;color:var(--ink);width:100%;border:1px solid #769188;border-radius:8px;padding:8px 10px;min-height:44px}.field input{max-width:220px}.field .unit{display:inline;margin-left:7px}.buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.feedback,.hints{margin:9px 0 0}.feedback:empty,.hints:empty{display:none}.feedback{font-weight:700;padding:9px 12px;border-radius:8px}.feedback.right{background:#e4f4e8;color:#125932}.feedback.wrong{background:#fcf0dd;color:#743314}.hints{padding-left:1.5rem;color:#483c2d}.hints li{margin:3px 0}
+#answer-key{padding:8px 12px;background:#eff4fe;border-radius:8px;margin:12px 0 0}#answer-key p{margin:4px 0}footer{padding:11px 3px;color:#415956;font-size:.86rem}
+@media(max-width:740px){main{padding:9px}.layout{grid-template-columns:1fr;gap:9px}#chart{top:0;z-index:1;max-height:49dvh;box-shadow:0 3px 10px #172b3519}header{padding:12px 14px}header p{display:none}nav{gap:5px;margin:9px 0}nav button{font-size:.83rem;padding:6px 8px}#chart h2{font-size:1.13rem}#chart .bar-row{font-size:.76rem;min-height:15px}.bars{gap:4px}.source{font-size:.69rem;margin-top:8px}.facts{font-size:.78rem}.plot{max-height:225px}}
+</style>
+</head>
+<body>
+<main>
+<header><div><h1>Infografiken auswerten</h1><p>Lies die Grafik. Rechne im Heft und prüfe hier deine Antwort.</p></div><span id="progress" aria-live="polite"></span></header>
+<nav id="stations" aria-label="Aufgaben auf dem Arbeitsblatt"></nav>
+<div class="layout">
+<section id="chart" class="card" aria-label="Diagramm zur Aufgabe"></section>
+<section id="exercise" class="card" aria-labelledby="prompt">
+<p class="counter" id="counter"></p>
+<h2 id="prompt" tabindex="-1"></h2>
+<div id="dependency" class="dependency" hidden></div>
+<form id="check-form" novalidate>
+<fieldset id="fields" aria-label="Deine Antwort"></fieldset>
+<div class="buttons">
+<button class="primary" id="check" type="submit">Antwort prüfen</button>
+<button id="back" type="button">Zurück</button>
+<button class="primary" id="forward" type="button" hidden>Weiter</button>
+</div>
+</form>
+<p id="feedback" class="feedback" role="status"></p>
+<ol id="hints" class="hints"></ol>
+<div id="answer-key" hidden></div>
+</section>
+</div>
+<footer>Alle Zahlen und Aufgaben beziehen sich auf das Arbeitsblatt. Dein Fortschritt wird auf diesem Gerät gespeichert.</footer>
+</main>
+<script>
+'use strict';
+const number=(label,answer,unit)=>({label,answer,unit});
+const choice=(label,answer,options)=>({label,answer,options});
+const task=(id,prompt,fields,hints,solution,needs=[])=>({id,prompt,fields,hints,solution,needs});
+const stations=[
+ {name:'Schulden',title:'Jung und verschuldet',kind:'bars',subtitle:'13- bis 20-Jährige · Häufig genannte Ausgaben als Gründe',facts:['14 von 100 haben Schulden','426 € durchschnittliche Schulden'],source:'Nach Voll-Verlag, Aufgabe 60 (IJF, 2004). Mehrfachnennungen. Abonnements und Videospiele sind angepasste Kategorien.',max:30,bars:[['Lebensmittel, Süßes, Getränke',27],['Abends ausgehen',26],['Handy, Telefonrechnung',19],['Auto, Mofa, Roller, Benzin',14],['Kleidung',13],['Reisen, Urlaub',12],['Abonnements',8],['Videospiele',7]],
+ tasks:[
+  task('1a','Wie viele der 13- bis 20-Jährigen haben Schulden?', [number('Jugendliche von 100',14,'von 100')], ['Lies die Angabe über den Balken.', 'Die gesuchte Zahl steht vor „von 100“.'], '14 von 100 Jugendlichen haben Schulden. Das sind 14 %.'),
+  task('1b','Nenne die durchschnittliche Höhe der Schulden.',[number('Durchschnittliche Schulden',426,'€')],['Suche die Angabe zum Durchschnitt über dem Diagramm.','Die durchschnittliche Schuldenhöhe ist ein Betrag in Euro.'],'Die durchschnittliche Schuldenhöhe beträgt 426 €.'),
+  task('1c','Wofür geben die Jugendlichen laut Grafik am häufigsten Geld aus?', [choice('Ausgabenkategorie','essen',[['ausgehen','Abends ausgehen'],['essen','Lebensmittel, Süßes, Getränke'],['kleidung','Kleidung'],['spiele','Videospiele']])], ['Vergleiche die Balkenlängen.','Der größte Balken ist mit 27 % beschriftet.'],'Lebensmittel, Süßes und Getränke wurden mit 27 % am häufigsten genannt.')
+ ]},
+ {name:'Netflix',title:'Netflix-Abos weltweit',kind:'line',subtitle:'Fiktive Übungszahlen · Anzahl jeweils zum Jahresende',source:'Nach JoJo Print, Aufgabe 32, S. 18–19. Die Übungszahlen sind vereinfacht und fiktiv.',
+ points:[[2012,60000],[2013,75000],[2014,80000],[2015,85000],[2016,90000],[2017,100000],[2018,120000]],
+ tasks:[
+  task('2a','Um wie viel Prozent ist die Zahl der Netflix-Abos 2013 gegenüber 2012 gestiegen?', [number('Anstieg',25,'%')], ['Lies die Punkte für 2012 und 2013 ab und bilde den Unterschied.','75.000 − 60.000 = 15.000. Überlege, welcher Bruchteil von 60.000 das ist.','15.000 ist ein Viertel von 60.000. Ein Viertel von 100 % ist 25 %.'], '75.000 − 60.000 = 15.000. 15.000 sind 25 % von 60.000.'),
+  task('2b','2017 entfielen 10 % der Netflix-Abos auf Deutschland. Berechne die Anzahl der Netflix-Abos in Deutschland.',[number('Netflix-Abos in Deutschland',10000,'Abos')],['Suche zuerst die weltweite Zahl für 2017 in der Grafik.','2017 gab es weltweit 100.000 Abos. 10 % sind ein Zehntel.','Teile 100.000 durch 10.'],'10 % von 100.000 sind 10.000 Abos.'),
+  task('2c','Prime hatte 2017 in Deutschland 50 % mehr Abos als Netflix. Berechne die Anzahl der Prime-Abos.',[number('Prime-Abos in Deutschland',15000,'Abos')],['Nutze die eingeblendete Lösung zu 2b als Grundwert.','50 % sind die Hälfte. Die Hälfte von 10.000 ist 5.000.','„50 % mehr“: Addiere die Hälfte zum Ausgangswert.'],'10.000 + 5.000 = 15.000 Prime-Abos.',['2b']),
+  task('2d','Prime hatte 2017 weltweit 80.000 Abos. Um wie viel Prozent hatte Netflix weltweit mehr?', [number('Mehr Abos bei Netflix',25,'%')], ['Lies in der Grafik die weltweite Anzahl von Netflix für 2017 ab.','100.000 − 80.000 = 20.000. Verglichen wird mit den 80.000 Prime-Abos.','20.000 ist ein Viertel von 80.000.'],'Netflix hatte 20.000 Abos mehr. Das sind 25 % von 80.000.'),
+  task('2e','Prime gab für eigene Produktionen 25 % weniger aus als Netflix. Das waren 15.000 € weniger. Berechne beide Beträge.',[number('Ausgaben von Netflix',60000,'€'),number('Ausgaben von Prime',45000,'€')],['Die Angabe 15.000 € entspricht 25 % der Netflix-Ausgaben.','Vier Viertel ergeben das Ganze. Rechne für Netflix 4 · 15.000 €.','Ziehe die 15.000 € von den 60.000 € ab, um die Ausgaben von Prime zu erhalten.'],'Netflix gab 60.000 € aus. Prime gab 45.000 € aus.')
+ ]},
+ {name:'Snack Attack',title:'Zahlungsarten bei Snack Attack',kind:'bars',subtitle:'Modellunternehmen · 600.000 € Gesamtumsatz · fiktive Übungszahlen',source:'Die vier dargestellten Zahlungsarten ergeben zusammen 100 % des Beispielumsatzes.',max:40,axis:true,logo:'data:image/jpeg;base64,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',bars:[['PayPal',35],['Kauf auf Rechnung',30],['Lastschrift / Bankeinzug',20],['Giro- / Kreditkarte',15]],
+ tasks:[
+  task('3a','Nenne die Diagrammart und die Einheit für die Umsatzanteile.',[choice('Diagrammart','balken',[['linie','Liniendiagramm'],['balken','Balkendiagramm'],['saeule','Säulendiagramm']]),choice('Einheit','prozent',[['euro','Euro'],['personen','Personen'],['prozent','Prozent']])],['Schau auf die Richtung der Balken und auf die Zeichen an der Achse.','Die Balken liegen waagrecht. Die Zahlen an der Achse enden mit %.'],'Ein Balkendiagramm. Die Umsatzanteile sind in Prozent angegeben.'),
+  task('3b','Formuliere in einem Satz, worum es in der Grafik geht.',[choice('Passender Satz','umsatz',[['preise','Die Grafik zeigt die Preise von vier Snacks.'],['umsatz','Die Grafik zeigt den Online-Umsatz von Snack Attack nach Zahlungsart.'],['kunden','Die Grafik zeigt die Zahl der Kundinnen und Kunden.']])],['Lies den Titel und die Beschriftungen links.','Die Balken vergleichen Zahlungsarten. Die Bezugsgröße ist der Umsatz.'],'Die Grafik zeigt den Online-Umsatz von Snack Attack nach Zahlungsart.'),
+  task('3c','Nenne die Zahlungsart mit dem größten Umsatzanteil und belege deine Antwort mit einer Zahl.',[choice('Zahlungsart','paypal',[['rechnung','Kauf auf Rechnung'],['lastschrift','Lastschrift / Bankeinzug'],['paypal','PayPal'],['karte','Giro- / Kreditkarte']]),number('Umsatzanteil',35,'%')],['Vergleiche die Längen der vier Balken.','Am längsten Balken steht der Anteil 35 %. Lies links die Zahlungsart ab.'],'PayPal hat mit 35 % den größten Umsatzanteil.'),
+  task('3d','Berechne den Umsatz, den Snack Attack über PayPal erzielt hat.',[number('PayPal-Umsatz',210000,'€')],['Aus Aufgabe 3c kennst du den Anteil. Der Gesamtumsatz ist 600.000 €.','Zerlege 35 % in 30 % und 5 %. 10 % sind 60.000 €, also sind 30 % dreimal so viel.','30 % sind 180.000 €. 5 % sind die Hälfte von 60.000 €. Addiere die Teilbeträge.'],'35 % von 600.000 € sind 210.000 €.',['3c']),
+  task('3e','Um wie viel Euro ist der Umsatz per Lastschrift / Bankeinzug höher als der Umsatz per Giro- / Kreditkarte?', [number('Umsatzunterschied',30000,'€')],['Lies die beiden Anteile ab und bilde die Differenz.','20 % − 15 % ergibt einen Unterschied von 5 Prozentpunkten. Berechne jetzt 5 % des Gesamtumsatzes.','10 % von 600.000 € sind 60.000 €. Für 5 % brauchst du davon die Hälfte.'],'Der Abstand beträgt 5 Prozentpunkte. 5 % von 600.000 € sind 30.000 €.')
+ ]},
+ {name:'Hausaufgabe',title:'Zahlungsarten im deutschen Onlinehandel',kind:'bars',subtitle:'Deutschland · 2025 · Anteile am gesamten Online-Umsatz',source:'Quelle: EHI, Online-Payment 2026. Auswahl von vier Zahlungsarten.',max:35,bars:[['PayPal',28.7],['Kauf auf Rechnung',26.1],['Lastschrift / Bankeinzug',14.4],['Kredit- / Debitkarte',13.7]],
+ tasks:[
+  task('4a','Werte die Grafik in vier Schritten aus. Wähle die passenden Angaben und belege die Kernaussage mit zwei Werten.',[
+    choice('1 · Formale Informationen','formal',[['zeit','Liniendiagramm, Deutschland 2025, Minuten'],['formal','Balkendiagramm, Deutschland 2025, Prozent, EHI'],['anzahl','Säulendiagramm, Deutschland 2026, Personen']]),
+    choice('2 · Schaubildthema','thema',[['laeden','Zahl der Onlineshops je Bundesland'],['bestellung','Zahl der einzelnen Bestellungen'],['thema','Die größten Umsatzanteile nach Zahlungsart']]),
+    choice('3 · Kernaussage','kern',[['karte','Karte liegt knapp vor PayPal.'],['kern','PayPal liegt knapp vor dem Kauf auf Rechnung.'],['gleich','PayPal und Kauf auf Rechnung liegen gleichauf.']]),
+    number('Anteil von PayPal',28.7,'%'),number('Anteil von Kauf auf Rechnung',26.1,'%'),
+    choice('4 · Zusatzinformation','zusatz',[['zusatz','Lastschrift steht mit 14,4 % an dritter Stelle.'],['zweiter','Lastschrift steht mit 26,1 % an zweiter Stelle.'],['erster','Kredit- / Debitkarte steht an erster Stelle.']])
+  ],['Beginne mit Diagrammart, Jahr, Einheit und Quelle.','Vergleiche die beiden längsten Balken. Trage ihre Werte in der passenden Reihenfolge ein.','PayPal und Kauf auf Rechnung liegen vorn. Nutze Lastschrift als Zusatzinformation.'],'EHI, Deutschland 2025, Balkendiagramm in Prozent. PayPal (28,7 %) liegt vor Kauf auf Rechnung (26,1 %). Lastschrift steht mit 14,4 % auf Platz 3.'),
+  task('4b','Korrigiere: „28,7 % der Kunden bezahlten mit PayPal.“ Worauf beziehen sich die 28,7 %?',[
+    choice('Passende Korrektur','umsatz',[['umsatz','28,7 % des Online-Umsatzes entfielen auf PayPal.'],['stueck','28,7 % aller Bestellungen wurden per PayPal bezahlt.'],['kunden','28,7 % der Kundinnen und Kunden nutzten PayPal.']])
+  ],['Lies die Einheit und den Untertitel der Grafik.','Die Prozentwerte beziehen sich auf die Einnahmen in Euro.'],'28,7 % des erfassten Online-Umsatzes entfielen auf PayPal.')
+ ]}
+];
+const all=stations.flatMap(station=>station.tasks);
+const lookup=new Map(all.map(item=>[item.id,item]));
+const $=id=>document.getElementById(id);
+const storageKey='bwr7-infografiken-stationen-v1';
+let progress={};
+let current='1a';
+try{
+ const saved=JSON.parse(localStorage.getItem(storageKey)||'{}');
+ if(lookup.has(saved.current)) current=saved.current;
+ if(saved.progress&&typeof saved.progress==='object') progress=saved.progress;
+}catch{}
+const save=()=>{try{localStorage.setItem(storageKey,JSON.stringify({current,progress}));}catch{}};
+const fmt=n=>new Intl.NumberFormat('de-DE',{maximumFractionDigits:1}).format(n);
+const tag=(name,content,cls)=>{const node=document.createElement(name);if(content!=null)node.textContent=content;if(cls)node.className=cls;return node;};
+const locationOf=id=>stations.find(station=>station.tasks.some(item=>item.id===id));
+const solved=id=>progress[id]?.done===true;
+let drawn=null;
+function drawChart(station){
+ if(drawn===station)return;
+ drawn=station;
+ const root=$('chart');
+ root.replaceChildren();
+ root.scrollTop=0;
+ const heading=tag('div',null,'chart-heading');
+ heading.append(tag('h2',station.title));
+ if(station.logo){const logo=tag('img');logo.src=station.logo;logo.alt='Snack Attack';heading.append(logo);}
+ root.append(heading,tag('p',station.subtitle,'subtitle'));
+ if(station.facts){const facts=tag('div',null,'facts');for(const fact of station.facts)facts.append(tag('strong',fact));root.append(facts);}
+ if(station.kind==='line'){
+   const range=120000;
+   const coords=station.points.map(([year,value],i)=>[76+i*59,168-126*value/range,year,value]);
+   const grid=[0,30000,60000,90000,120000].map(value=>{
+     const y=168-126*value/range;
+     return '<path class="grid" d="M54 '+y+'H451"/><text x="48" y="'+(y+4)+'" text-anchor="end">'+fmt(value)+'</text>';
+   }).join('');
+   const points=coords.map(([x,y,year,value])=>'<circle cx="'+x+'" cy="'+y+'" r="3.5"/><text class="value" x="'+x+'" y="'+(y-9)+'" text-anchor="middle">'+fmt(value)+'</text><text x="'+x+'" y="187" text-anchor="middle">'+year+'</text>').join('');
+   const path=coords.map(([x,y])=>x+','+y).join(' ');
+   const chart=tag('div');
+   const description=station.points.map(([year,val])=>year+': '+fmt(val)+' Abos').join('; ');
+   chart.innerHTML='<svg class="plot" viewBox="0 0 470 202" role="img" aria-label="'+description+'">'+grid+'<path stroke="#54716b" fill="none" d="M54 40V168H451"/><polyline class="curve" points="'+path+'"/>'+points+'</svg>';
+   root.append(chart);
+ }else{
+   const chart=tag('div',null,'bars');
+   for(const [name,value] of station.bars){
+     const row=tag('div',null,'bar-row');
+     const track=tag('div',null,'bar-track');
+     const fill=tag('span');
+     fill.style.setProperty('--width',value/station.max*100+'%');
+     track.setAttribute('aria-hidden','true');
+     track.append(fill);
+     row.append(tag('span',name),track,tag('strong',fmt(value)+' %'));
+     chart.append(row);
+   }
+   root.append(chart);
+   if(station.axis){
+     const wrapper=tag('div',null,'axis-bar');
+     const axis=tag('div',null,'chart-axis');
+     for(const number of [0,10,20,30,40])axis.append(tag('span',number+' %'));
+     wrapper.append(axis);root.append(wrapper);
+   }
+ }
+ root.append(tag('small',station.source,'source'));
+}
+function parseNumber(raw,unit){
+ const clean=raw.trim().replace(/[\s\u00a0\u202f]/g,'').replace(/[€%]$/,'');
+ if(!/^[+-]?\d+(?:[.,]\d+)*$/.test(clean))return NaN;
+ if(clean.includes(',')){
+   if(!/^[+-]?(?:\d+|\d{1,3}(?:\.\d{3})+),\d+$/.test(clean))return NaN;
+   return Number(clean.replaceAll('.','').replace(',','.'));
+ }
+ if(/^[+-]?\d{1,3}(?:\.\d{3})+$/.test(clean)&&unit!=='%') return Number(clean.replaceAll('.',''));
+ return Number(clean);
+}
+function feedback(item){
+ const record=progress[item.id]||{};
+ const notice=$('feedback'),hints=$('hints'),key=$('answer-key');
+ const hintCount=Math.min(record.tries||0,item.hints.length);
+ hints.replaceChildren();
+ for(let i=0;i<hintCount;i++) hints.append(tag('li',item.hints[i]));
+ notice.className='feedback';
+ notice.textContent='';
+ key.hidden=true;
+ key.replaceChildren();
+ if(record.done){
+   notice.classList.add('right');
+   notice.textContent='Richtig!';
+   key.append(tag('p',item.solution));
+   key.hidden=false;
+ }else if(hintCount){
+   notice.classList.add('wrong');
+   notice.textContent='Noch nicht richtig. '+(hintCount===1?'Hier ist der erste Tipp.':'Nutze die Tipps für deinen nächsten Versuch.');
+ }
+ $('check').hidden=!!record.done;
+ $('forward').hidden=!record.done;
+ const next=all[all.indexOf(item)+1];
+ $('forward').textContent=next?'Weiter':'Zur Aufgabenübersicht';
+ $('progress').textContent=all.filter(item=>solved(item.id)).length+' / '+all.length+' gelöst';
+}
+function show(id,focus=false){
+ current=id;
+ save();
+ const item=lookup.get(id),station=locationOf(id);
+ drawChart(station);
+ const nav=$('stations');
+ nav.replaceChildren();
+ for(const [index,group] of stations.entries()){
+   const button=tag('button',(index+1)+' · '+group.name+(group.tasks.every(item=>solved(item.id))?' ✓':''));
+   button.type='button';
+   button.setAttribute('aria-current',group===station?'true':'false');
+   button.addEventListener('click',()=>show((group.tasks.find(item=>!solved(item.id))||group.tasks[0]).id,true));
+   nav.append(button);
+ }
+ $('counter').textContent='Aufgabe '+id+' · Teil '+(station.tasks.indexOf(item)+1)+' von '+station.tasks.length;
+ $('prompt').textContent=item.prompt;
+ const help=$('dependency');
+ help.replaceChildren();
+ help.hidden=item.needs.length===0;
+ for(const previous of item.needs){
+   const dependency=lookup.get(previous);
+   const head=tag('strong','Aus Aufgabe '+previous);
+   help.append(head,tag('p',dependency.prompt));
+   if(solved(previous))help.append(tag('p',dependency.solution));
+   else{
+     const button=tag('button','Voraufgabe öffnen');
+     button.type='button';button.addEventListener('click',()=>show(previous,true));help.append(button);
+   }
+ }
+ const fields=$('fields');
+ fields.replaceChildren();
+ for(const [i,field] of item.fields.entries()){
+   const label=tag('label',null,'field');
+   label.append(tag('span',field.label));
+   const input=tag(field.options?'select':'input');
+   input.name='field'+i;
+   if(field.options){
+     input.append(new Option('Bitte auswählen',''));
+     for(const [value,caption] of field.options)input.append(new Option(caption,value));
+   }else {input.type='text';input.inputMode='decimal';input.autocomplete='off';}
+   input.value=progress[id]?.values?.[i]||'';
+   input.disabled=solved(id);
+   label.append(input);
+   if(field.unit)label.append(tag('span',field.unit,'unit'));
+   fields.append(label);
+ }
+ $('back').hidden=(all.indexOf(item)===0);
+ feedback(item);
+ if(focus){
+   $('prompt').focus({preventScroll:true});
+   if(matchMedia('(max-width: 740px)').matches){
+     const promptTop=$('prompt').getBoundingClientRect().top;
+     const chartBottom=$('chart').getBoundingClientRect().bottom;
+     if(promptTop<chartBottom||promptTop>innerHeight-160){
+       window.scrollBy({top:promptTop-Math.min($('chart').offsetHeight,innerHeight*.49)-22});
+     }
+   }
+ }
+}
+$('check-form').addEventListener('submit',event=>{
+ event.preventDefault();
+ const item=lookup.get(current);
+ if(solved(current))return;
+ const fields=Array.from($('fields').querySelectorAll('input,select'));
+ const values=fields.map(field=>field.value.trim());
+ if(values.some(value=>!value)){
+   $('feedback').className='feedback wrong';$('feedback').textContent='Fülle zuerst alle Felder aus.';
+   fields[values.findIndex(value=>!value)].focus();
+   return;
+ }
+ const correct=item.fields.every((field,i)=>field.options?values[i]===field.answer:Math.abs(parseNumber(values[i],field.unit)-field.answer)<1e-7);
+ const record=progress[current]||{tries:0};
+ if(!correct) record.tries++;
+ record.done=correct;record.values=values;progress[current]=record;save();
+ if(correct){show(current);$('forward').focus({preventScroll:true});}else feedback(item);
+});
+$('back').addEventListener('click',()=>show(all.find((item,i)=>all[i+1]?.id===current).id,true));
+$('forward').addEventListener('click',()=>{
+ const next=all[all.indexOf(lookup.get(current))+1]||all.find(item=>!solved(item.id));
+ if(next){show(next.id,true);return;}
+ const nav=$('stations');
+ $('feedback').textContent='Du hast alle Aufgaben bearbeitet. Über die Aufgabenleiste kannst du deine Lösungen nochmals ansehen.';
+ $('forward').hidden=true;
+ nav.querySelector('button').focus();
+});
+show(current);
+</script>
+</body>
+</html>
